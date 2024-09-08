@@ -362,11 +362,49 @@ public class Database
                 String birthDate = resultSet.getString("birth_date");
 
                 // TODO: add your code here
+                System.out.printf("| %d | %s | %s | %s |%n", id, firstName, lastName, birthDate);
             }
         }
         catch (SQLException sqlException)
         {
             System.out.println("!!! SQLException: failed to query the students table. Make sure you executed the schema.sql and seeds.sql scripts");
+            System.out.println(sqlException.getMessage());
+        }
+    }
+
+    public void updateExistingStudentInformation(Student studentToUpdate)
+    {
+        String sql =
+                "UPDATE students\n" +
+                        "SET first_name = ?, last_name = ?, birth_date = ?\n" +
+                        "WHERE id = ?;";
+
+        try
+                (
+                        Connection connection = getDatabaseConnection();
+                        PreparedStatement sqlStatement = connection.prepareStatement(sql);
+                )
+        {
+            sqlStatement.setString(1, studentToUpdate.getFirstName());
+            sqlStatement.setString(2, studentToUpdate.getLastName());
+            sqlStatement.setString(3, studentToUpdate.getBirthDate().toString());
+            sqlStatement.setInt(4, studentToUpdate.getId());
+
+            int numberOfRowsAffected = sqlStatement.executeUpdate();
+            System.out.println("numberOfRowsAffected = " + numberOfRowsAffected);
+
+            if (numberOfRowsAffected > 0)
+            {
+                System.out.println("SUCCESSFULLY updated the student with id = " + studentToUpdate.getId());
+            }
+            else
+            {
+                System.out.println("!!! WARNING: failed to update the student with id = " + studentToUpdate.getId());
+            }
+        }
+        catch (SQLException sqlException)
+        {
+            System.out.println("!!! SQLException: failed to update the student with id = " + studentToUpdate.getId());
             System.out.println(sqlException.getMessage());
         }
     }
@@ -381,6 +419,79 @@ public class Database
         // sqlStatement.setDate(columnIndexTBD, newStudent.getBirthDate());
 
         // TODO: add your code here
+        String sql =
+                "INSERT INTO students (first_name, last_name, birth_date)\n" +
+                        "VALUES (?, ?, ?);";
+
+        try
+                (
+                        Connection connection = getDatabaseConnection();
+                        PreparedStatement sqlStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+                )
+        {
+            sqlStatement.setString(1, newStudent.getFirstName());
+            sqlStatement.setString(2, newStudent.getLastName());
+            sqlStatement.setString(3, newStudent.getBirthDate().toString());
+
+            int numberOfRowsAffected = sqlStatement.executeUpdate();
+            System.out.println("numberOfRowsAffected = " + numberOfRowsAffected);
+
+            if (numberOfRowsAffected > 0)
+            {
+                ResultSet resultSet = sqlStatement.getGeneratedKeys();
+
+                while (resultSet.next())
+                {
+                    // "last_insert_rowid()" is the column name that contains the id of the last inserted row
+                    // alternatively, we could have used resultSet.getInt(1); to get the id of the first column returned
+                    int generatedIdForTheNewlyInsertedClass = resultSet.getInt("last_insert_rowid()");
+                    System.out.println("SUCCESSFULLY inserted a new student with id = " + generatedIdForTheNewlyInsertedClass);
+
+                    // this can be useful if we need to make additional processing on the newClass object
+                    newStudent.setId(generatedIdForTheNewlyInsertedClass);
+                }
+
+                resultSet.close();
+            }
+        }
+        catch (SQLException sqlException)
+        {
+            System.out.println("!!! SQLException: failed to insert into the classes table");
+            System.out.println(sqlException.getMessage());
+        }
+    }
+
+    public void deleteExistingStudent(int idOfStudentsToDelete)
+    {
+        String sql =
+                "DELETE FROM students\n" +
+                        "WHERE id = ?;";
+
+        try
+                (
+                        Connection connection = getDatabaseConnection();
+                        PreparedStatement sqlStatement = connection.prepareStatement(sql);
+                )
+        {
+            sqlStatement.setInt(1, idOfStudentsToDelete);
+
+            int numberOfRowsAffected = sqlStatement.executeUpdate();
+            System.out.println("numberOfRowsAffected = " + numberOfRowsAffected);
+
+            if (numberOfRowsAffected > 0)
+            {
+                System.out.println("SUCCESSFULLY deleted the student with id = " + idOfStudentsToDelete);
+            }
+            else
+            {
+                System.out.println("!!! WARNING: failed to delete the students with id = " + idOfStudentsToDelete);
+            }
+        }
+        catch (SQLException sqlException)
+        {
+            System.out.println("!!! SQLException: failed to delete the student with id = " + idOfStudentsToDelete);
+            System.out.println(sqlException.getMessage());
+        }
     }
 
     public void listAllRegisteredStudents()
