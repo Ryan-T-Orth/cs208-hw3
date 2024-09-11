@@ -134,7 +134,13 @@ public class Main
                     break;
 
                 //TODO: add your code here
+                case 31:
+                    menuAddStudentToClass();
+                    break;
 
+                case 32:
+                    menuDropStudentFromClass();
+                    break;
 
                 default:
                     System.out.println("Invalid choice. Please enter a number such as 0, 1, 2, 10, 11, etc.");
@@ -339,4 +345,50 @@ public class Main
         database.listAllRegisteredStudents();
     }
 
+    private static void menuAddStudentToClass() {
+
+        System.out.println("Adding new student...");
+
+        int sid = 0;
+        int cid = 0;
+
+        try
+        {
+            // TODO: add your code here
+            System.out.print("Enter the student id: ");
+            sid = Integer.parseInt(inputScanner.nextLine());
+
+            System.out.print("Enter the class id: ");
+            cid = Integer.parseInt(inputScanner.nextLine());
+        }
+        catch (Exception e)
+        {
+            System.out.println("Invalid input, please try again.");
+            return;
+        }
+
+        database.addStudentToClass(sid, cid);
+    }
+
+    private static void menuDropStudentFromClass() {
+        System.out.println("Deleting existing student...");
+
+        int sid = 0;
+        int cid = 0;
+        try
+        {
+            System.out.print("Enter the existing student id you want to delete: ");
+            sid = Integer.parseInt(inputScanner.nextLine());
+
+            System.out.print("Enter the existing class id you want to delete: ");
+            cid = Integer.parseInt(inputScanner.nextLine());
+        }
+        catch (Exception e)
+        {
+            System.out.println("Invalid input, please try again.");
+            return;
+        }
+
+        database.dropStudentFromClass(sid, cid);
+    }
 }

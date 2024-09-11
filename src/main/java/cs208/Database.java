@@ -529,6 +529,81 @@ public class Database
         }
     }
 
+    public void addStudentToClass(int sid, int cid)
+    {
+        String sql =
+                "INSERT INTO registered_students (student_id, class_id)\n" +
+                        "SELECT students.id, classes.id\n" +
+                        "FROM students\n" +
+                        "INNER JOIN classes ON classes.id = " + cid +
+                        " WHERE students.id = " + sid + ";";
+
+        try
+                (
+                        Connection connection = getDatabaseConnection();
+                        PreparedStatement sqlStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+                )
+        {
+
+            int numberOfRowsAffected = sqlStatement.executeUpdate();
+            System.out.println("numberOfRowsAffected = " + numberOfRowsAffected);
+
+            if (numberOfRowsAffected > 0)
+            {
+                ResultSet resultSet = sqlStatement.getGeneratedKeys();
+
+                while (resultSet.next())
+                {
+                    // "last_insert_rowid()" is the column name that contains the id of the last inserted row
+                    // alternatively, we could have used resultSet.getInt(1); to get the id of the first column returned
+                    int generatedIdForTheNewlyInsertedClass = resultSet.getInt("last_insert_rowid()");
+                    System.out.println("SUCCESSFULLY inserted a new student with id = " + generatedIdForTheNewlyInsertedClass + " into class with id = " + cid);
+                }
+
+                resultSet.close();
+            }
+        }
+        catch (SQLException sqlException)
+        {
+            System.out.println("!!! SQLException: failed to insert into the registered_students table");
+            System.out.println(sqlException.getMessage());
+        }
+    }
+
+    public void dropStudentFromClass(int sid, int cid)
+    {
+        String sql =
+                "DELETE FROM registered_students\n" +
+                        "WHERE student_id = ? AND class_id = ?;";
+
+        try
+                (
+                        Connection connection = getDatabaseConnection();
+                        PreparedStatement sqlStatement = connection.prepareStatement(sql);
+                )
+        {
+            sqlStatement.setInt(1, sid);
+            sqlStatement.setInt(2, cid);
+
+            int numberOfRowsAffected = sqlStatement.executeUpdate();
+            System.out.println("numberOfRowsAffected = " + numberOfRowsAffected);
+
+            if (numberOfRowsAffected > 0)
+            {
+                System.out.println("SUCCESSFULLY deleted the student with id = " + sid + " from the class with id = " + cid);
+            }
+            else
+            {
+                System.out.println("!!! WARNING: failed to delete the students with id = " + sid);
+            }
+        }
+        catch (SQLException sqlException)
+        {
+            System.out.println("!!! SQLException: failed to delete the student with id = " + sid);
+            System.out.println(sqlException.getMessage());
+        }
+    }
+
     private void printTableHeader(String[] listOfColumnNames)
     {
         System.out.print("| ");
